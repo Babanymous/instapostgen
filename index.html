@@ -1,0 +1,3572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Post Editor</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #fafafa;
+            color: #262626;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        header {
+            background-color: white;
+            border-bottom: 1px solid #dbdbdb;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            background-color: #0095f6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #0081d6;
+        }
+        
+        .secondary-button {
+            background-color: transparent;
+            color: #0095f6;
+            border: 1px solid #0095f6;
+        }
+        
+        .secondary-button:hover {
+            background-color: rgba(0, 149, 246, 0.1);
+        }
+        
+        main {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .editor-container {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .canvas-container {
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1/1;
+            background-color: white;
+            border: 1px solid #dbdbdb;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        #postCanvas {
+            width: 100%;
+            height: 100%;
+            cursor: move;
+        }
+        
+        .editor-toolbar {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            background-color: white;
+            border-radius: 8px;
+            border: 1px solid #dbdbdb;
+            padding: 10px;
+        }
+        
+        .toolbar-group {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .toolbar-button {
+            background-color: transparent;
+            color: #262626;
+            border: none;
+            padding: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .toolbar-button:hover {
+            background-color: #efefef;
+        }
+        
+        .toolbar-button.active {
+            color: #0095f6;
+        }
+        
+        .controls-container {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            border-radius: 8px;
+            border: 1px solid #dbdbdb;
+            padding: 20px;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid #dbdbdb;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        
+        .tab-button {
+            flex: 1;
+            min-width: 80px;
+            background-color: transparent;
+            color: #8e8e8e;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 0;
+            white-space: nowrap;
+        }
+        
+        .tab-button:hover {
+            color: #262626;
+        }
+        
+        .tab-button.active {
+            color: #0095f6;
+            border-bottom: 2px solid #0095f6;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .control-section {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #efefef;
+            padding-bottom: 20px;
+        }
+        
+        .control-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .control-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #8e8e8e;
+        }
+        
+        input[type="color"] {
+            width: 100%;
+            height: 40px;
+            border: 1px solid #dbdbdb;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dbdbdb;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .gradient-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .gradient-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .gradient-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .gradient-option.active {
+            border-color: #262626;
+        }
+        
+        .pattern-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .pattern-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .pattern-option.active {
+            border-color: #262626;
+        }
+        
+        .element-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .element-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            background-color: #fafafa;
+            cursor: pointer;
+        }
+        
+        .element-item:hover {
+            background-color: #efefef;
+        }
+        
+        .element-item.active {
+            background-color: #e8f4fd;
+        }
+        
+        .element-preview {
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border: 1px solid #dbdbdb;
+            border-radius: 4px;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            font-size: 0.7rem;
+            text-align: center;
+        }
+        
+        .element-info {
+            flex: 1;
+        }
+        
+        .element-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .element-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .icon-button {
+            background-color: transparent;
+            color: #8e8e8e;
+            border: none;
+            padding: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .icon-button:hover {
+            background-color: #efefef;
+            color: #262626;
+        }
+        
+        .icon-button.delete:hover {
+            background-color: #ffebee;
+            color: #dc2743;
+        }
+        
+        .theme-presets {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .theme-preset {
+            aspect-ratio: 1/1;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .theme-preset:hover {
+            transform: scale(1.05);
+        }
+        
+        .theme-preset.active {
+            border-color: #262626;
+        }
+        
+        .range-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+        }
+        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .toggle {
+            position: relative;
+            width: 40px;
+            height: 24px;
+            background-color: #dbdbdb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .toggle.active {
+            background-color: #0095f6;
+        }
+        
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        
+        .toggle.active::after {
+            transform: translateX(16px);
+        }
+        
+        .shape-options {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .shape-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #dbdbdb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .shape-option:hover {
+            background-color: #efefef;
+        }
+        
+        .shape-option.active {
+            background-color: #e8f4fd;
+            border-color: #0095f6;
+        }
+        
+        .export-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .export-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border: 1px solid #dbdbdb;
+            border-radius: 4px;
+        }
+        
+        .export-option.active {
+            background-color: #e8f4fd;
+            border-color: #0095f6;
+        }
+        
+        .export-option-name {
+            font-weight: 500;
+        }
+        
+        .export-option-size {
+            font-size: 0.8rem;
+            color: #8e8e8e;
+        }
+        
+        @media (max-width: 768px) {
+            main {
+                flex-direction: column;
+            }
+            
+            .editor-container, .controls-container {
+                max-width: 100%;
+            }
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #262626;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #0095f6;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Instagram Post Editor</div>
+        <div class="header-actions">
+            <button class="secondary-button" id="undoButton">
+                <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">undo</i>
+                Undo
+            </button>
+            <button class="secondary-button" id="redoButton">
+                <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">redo</i>
+                Redo
+            </button>
+            <button class="secondary-button" id="resetButton">
+                <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">refresh</i>
+                Reset
+            </button>
+            <button id="exportButton">
+                <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">download</i>
+                Export
+            </button>
+        </div>
+    </header>
+    
+    <main>
+        <div class="editor-container">
+            <div class="canvas-container">
+                <canvas id="postCanvas" width="1080" height="1080"></canvas>
+                <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+            
+            <div class="editor-toolbar">
+                <div class="toolbar-group">
+                    <button class="toolbar-button" id="zoomInButton" title="Zoom In">
+                        <i class="material-icons">zoom_in</i>
+                    </button>
+                    <button class="toolbar-button" id="zoomOutButton" title="Zoom Out">
+                        <i class="material-icons">zoom_out</i>
+                    </button>
+                    <button class="toolbar-button" id="fitButton" title="Fit to Screen">
+                        <i class="material-icons">aspect_ratio</i>
+                    </button>
+                </div>
+                
+                <div class="toolbar-group">
+                    <button class="toolbar-button" id="gridButton" title="Toggle Grid">
+                        <i class="material-icons">grid_on</i>
+                    </button>
+                    <button class="toolbar-button" id="snapButton" title="Snap to Grid">
+                        <i class="material-icons">grid_off</i>
+                    </button>
+                </div>
+                
+                <div class="toolbar-group">
+                    <button class="toolbar-button" id="centerButton" title="Center Selected">
+                        <i class="material-icons">center_focus_strong</i>
+                    </button>
+                    <button class="toolbar-button" id="duplicateButton" title="Duplicate Selected">
+                        <i class="material-icons">content_copy</i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls-container">
+            <div class="tab-buttons">
+                <button class="tab-button active" data-tab="background">Background</button>
+                <button class="tab-button" data-tab="text">Text</button>
+                <button class="tab-button" data-tab="shapes">Shapes</button>
+                <button class="tab-button" data-tab="images">Images</button>
+                <button class="tab-button" data-tab="filters">Filters</button>
+                <button class="tab-button" data-tab="elements">Elements</button>
+                <button class="tab-button" data-tab="export">Export</button>
+            </div>
+            
+            <div class="tab-content active" id="background-tab">
+                <div class="control-section">
+                    <div class="control-title">
+                        <i class="material-icons">palette</i>
+                        Background Color
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Background Color</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="color" id="backgroundColor" value="#ffffff">
+                            <input type="text" id="backgroundColorText" value="#ffffff" maxlength="7">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Gradient</label>
+                        <div class="gradient-options">
+                            <div class="gradient-option active" data-gradient="none" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);"></div>
+                            <div class="gradient-option" data-gradient="sunset" style="background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);"></div>
+                            <div class="gradient-option" data-gradient="ocean" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                            <div class="gradient-option" data-gradient="forest" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);"></div>
+                            <div class="gradient-option" data-gradient="night" style="background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);"></div>
+                            <div class="gradient-option" data-gradient="peach" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Theme Presets</label>
+                        <div class="theme-presets">
+                            <div class="theme-preset" data-theme="white" style="background-color: #ffffff;"></div>
+                            <div class="theme-preset" data-theme="black" style="background-color: #000000;"></div>
+                            <div class="theme-preset" data-theme="blue" style="background-color: #0095f6;"></div>
+                            <div class="theme-preset" data-theme="pink" style="background-color: #dc2743;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Pattern</label>
+                        <div class="gradient-options">
+                            <div class="pattern-option active" data-pattern="none" style="background: #ffffff;"></div>
+                            <div class="pattern-option" data-pattern="dots" style="background-image: radial-gradient(#000000 1px, transparent 1px); background-size: 10px 10px; background-color: #ffffff;"></div>
+                            <div class="pattern-option" data-pattern="lines" style="background-image: linear-gradient(#000000 1px, transparent 1px); background-size: 10px 10px; background-color: #ffffff;"></div>
+                            <div class="pattern-option" data-pattern="grid" style="background-image: linear-gradient(#000000 1px, transparent 1px), linear-gradient(90deg, #000000 1px, transparent 1px); background-size: 20px 20px; background-color: #ffffff;"></div>
+                            <div class="pattern-option" data-pattern="diagonal" style="background-image: linear-gradient(45deg, #000000 1px, transparent 1px); background-size: 10px 10px; background-color: #ffffff;"></div>
+                            <div class="pattern-option" data-pattern="checkered" style="background-image: linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000); background-size: 20px 20px; background-position: 0 0, 10px 10px; background-color: #ffffff;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Pattern Color</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="color" id="patternColor" value="#000000">
+                            <input type="text" id="patternColorText" value="#000000" maxlength="7">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Pattern Opacity</label>
+                        <div class="range-container">
+                            <input type="range" id="patternOpacity" min="10" max="100" value="30">
+                            <span id="patternOpacityValue">30%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Background Image</label>
+                        <button class="secondary-button" id="uploadBackgroundButton">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">image</i>
+                            Upload Image
+                        </button>
+                        <input type="file" id="backgroundImageInput" class="file-input" accept="image/*">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="text-tab">
+                <div class="control-section">
+                    <div class="control-title">
+                        <i class="material-icons">text_fields</i>
+                        Add Text
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Text Content</label>
+                        <input type="text" id="textContent" placeholder="Enter your text here">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Font Size</label>
+                        <div class="range-container">
+                            <input type="range" id="fontSizeRange" min="12" max="300" value="60">
+                            <input type="number" id="fontSize" value="60" min="12" max="300" style="width: 70px;">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Text Color</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="color" id="textColor" value="#262626">
+                            <input type="text" id="textColorText" value="#262626" maxlength="7" style="width: 70px;">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Font Family</label>
+                        <select id="fontFamily">
+                            <option value="Arial">Arial</option>
+                            <option value="Helvetica">Helvetica</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="Verdana">Verdana</option>
+                            <option value="Impact">Impact</option>
+                            <option value="Comic Sans MS">Comic Sans MS</option>
+                            <option value="Trebuchet MS">Trebuchet MS</option>
+                            <option value="Arial Black">Arial Black</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Text Style</label>
+                        <div class="toggle-container">
+                            <button class="toolbar-button" id="boldButton" title="Bold">
+                                <i class="material-icons">format_bold</i>
+                            </button>
+                            <button class="toolbar-button" id="italicButton" title="Italic">
+                                <i class="material-icons">format_italic</i>
+                            </button>
+                            <button class="toolbar-button" id="underlineButton" title="Underline">
+                                <i class="material-icons">format_underlined</i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Text Alignment</label>
+                        <div class="toggle-container">
+                            <button class="toolbar-button active" id="alignLeftButton" title="Align Left">
+                                <i class="material-icons">format_align_left</i>
+                            </button>
+                            <button class="toolbar-button" id="alignCenterButton" title="Align Center">
+                                <i class="material-icons">format_align_center</i>
+                            </button>
+                            <button class="toolbar-button" id="alignRightButton" title="Align Right">
+                                <i class="material-icons">format_align_right</i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Letter Spacing</label>
+                        <div class="range-container">
+                            <input type="range" id="letterSpacing" min="-5" max="20" value="0">
+                            <span id="letterSpacingValue">0px</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Rotation</label>
+                        <div class="range-container">
+                            <input type="range" id="textRotation" min="-180" max="180" value="0">
+                            <span id="textRotationValue">0°</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Text Shadow</label>
+                        <div class="toggle-container">
+                            <div class="toggle" id="textShadowToggle"></div>
+                            <span>Enable Text Shadow</span>
+                        </div>
+                    </div>
+                    
+                    <div id="textShadowControls" style="display: none;">
+                        <div class="control-group">
+                            <label>Shadow Color</label>
+                            <input type="color" id="shadowColor" value="#000000">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label>Shadow Blur</label>
+                            <div class="range-container">
+                                <input type="range" id="shadowBlur" min="0" max="20" value="5">
+                                <span id="shadowBlurValue">5px</span>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label>Shadow Offset X</label>
+                            <div class="range-container">
+                                <input type="range" id="shadowOffsetX" min="-20" max="20" value="2">
+                                <span id="shadowOffsetXValue">2px</span>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label>Shadow Offset Y</label>
+                            <div class="range-container">
+                                <input type="range" id="shadowOffsetY" min="-20" max="20" value="2">
+                                <span id="shadowOffsetYValue">2px</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Text Outline</label>
+                        <div class="toggle-container">
+                            <div class="toggle" id="textOutlineToggle"></div>
+                            <span>Enable Text Outline</span>
+                        </div>
+                    </div>
+                    
+                    <div id="textOutlineControls" style="display: none;">
+                        <div class="control-group">
+                            <label>Outline Color</label>
+                            <input type="color" id="outlineColor" value="#ffffff">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label>Outline Width</label>
+                            <div class="range-container">
+                                <input type="range" id="outlineWidth" min="1" max="10" value="2">
+                                <span id="outlineWidthValue">2px</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="addTextButton">
+                        <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">add</i>
+                        Add Text
+                    </button>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="shapes-tab">
+                <div class="control-section">
+                    <div class="control-title">
+                        <i class="material-icons">category</i>
+                        Add Shapes
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Shape Type</label>
+                        <div class="shape-options">
+                            <div class="shape-option active" data-shape="rectangle">
+                                <div style="width: 30px; height: 20px; background-color: #262626;"></div>
+                            </div>
+                            <div class="shape-option" data-shape="circle">
+                                <div style="width: 25px; height: 25px; background-color: #262626; border-radius: 50%;"></div>
+                            </div>
+                            <div class="shape-option" data-shape="triangle">
+                                <div style="width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-bottom: 25px solid #262626;"></div>
+                            </div>
+                            <div class="shape-option" data-shape="line">
+                                <div style="width: 30px; height: 2px; background-color: #262626; transform: rotate(-45deg);"></div>
+                            </div>
+                            <div class="shape-option" data-shape="star">
+                                <i class="material-icons">star</i>
+                            </div>
+                            <div class="shape-option" data-shape="heart">
+                                <i class="material-icons">favorite</i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Shape Color</label>
+                        <input type="color" id="shapeColor" value="#0095f6">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Shape Size</label>
+                        <div class="range-container">
+                            <input type="range" id="shapeSize" min="50" max="500" value="200">
+                            <span id="shapeSizeValue">200px</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Shape Rotation</label>
+                        <div class="range-container">
+                            <input type="range" id="shapeRotation" min="-180" max="180" value="0">
+                            <span id="shapeRotationValue">0°</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Shape Opacity</label>
+                        <div class="range-container">
+                            <input type="range" id="shapeOpacity" min="0" max="100" value="100">
+                            <span id="shapeOpacityValue">100%</span>
+                        </div>
+                    </div>
+                    
+                    <button id="addShapeButton">
+                        <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">add</i>
+                        Add Shape
+                    </button>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="images-tab">
+                <div class="control-section">
+                    <div class="control-title">
+                        <i class="material-icons">image</i>
+                        Add Images
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Upload Image</label>
+                        <button class="secondary-button" id="uploadImageButton">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">cloud_upload</i>
+                            Upload from Computer
+                        </button>
+                        <input type="file" id="imageInput" class="file-input" accept="image/*">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Image Size</label>
+                        <div class="range-container">
+                            <input type="range" id="imageSize" min="50" max="800" value="300">
+                            <span id="imageSizeValue">300px</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Image Rotation</label>
+                        <div class="range-container">
+                            <input type="range" id="imageRotation" min="-180" max="180" value="0">
+                            <span id="imageRotationValue">0°</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Image Opacity</label>
+                        <div class="range-container">
+                            <input type="range" id="imageOpacity" min="0" max="100" value="100">
+                            <span id="imageOpacityValue">100%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Image Border</label>
+                        <div class="toggle-container">
+                            <div class="toggle" id="imageBorderToggle"></div>
+                            <span>Enable Border</span>
+                        </div>
+                    </div>
+                    
+                    <div id="imageBorderControls" style="display: none;">
+                        <div class="control-group">
+                            <label>Border Color</label>
+                            <input type="color" id="borderColor" value="#ffffff">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label>Border Width</label>
+                            <div class="range-container">
+                                <input type="range" id="borderWidth" min="1" max="20" value="5">
+                                <span id="borderWidthValue">5px</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Image Border Radius</label>
+                        <div class="range-container">
+                            <input type="range" id="imageBorderRadius" min="0" max="50" value="0">
+                            <span id="imageBorderRadiusValue">0px</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Image Shadow</label>
+                        <div class="toggle-container">
+                            <div class="toggle" id="imageShadowToggle"></div>
+                            <span>Enable Shadow</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="filters-tab">
+                <div class="control-section">
+                    <div class="control-title">
+                        <i class="material-icons">tune</i>
+                        Post Filters
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Brightness</label>
+                        <div class="range-container">
+                            <input type="range" id="filterBrightness" min="0" max="200" value="100">
+                            <span id="filterBrightnessValue">100%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Contrast</label>
+                        <div class="range-container">
+                            <input type="range" id="filterContrast" min="0" max="200" value="100">
+                            <span id="filterContrastValue">100%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Saturation</label>
+                        <div class="range-container">
+                            <input type="range" id="filterSaturation" min="0" max="200" value="100">
+                            <span id="filterSaturationValue">100%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Blur</label>
+                        <div class="range-container">
+                            <input type="range" id="filterBlur" min="0" max="20" value="0">
+                            <span id="filterBlurValue">0px</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Hue Rotate</label>
+                        <div class="range-container">
+                            <input type="range" id="filterHueRotate" min="0" max="360" value="0">
+                            <span id="filterHueRotateValue">0°</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Sepia</label>
+                        <div class="range-container">
+                            <input type="range" id="filterSepia" min="0" max="100" value="0">
+                            <span id="filterSepiaValue">0%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Grayscale</label>
+                        <div class="range-container">
+                            <input type="range" id="filterGrayscale" min="0" max="100" value="0">
+                            <span id="filterGrayscaleValue">0%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Invert</label>
+                        <div class="range-container">
+                            <input type="range" id="filterInvert" min="0" max="100" value="0">
+                            <span id="filterInvertValue">0%</span>
+                        </div>
+                    </div>
+                    
+                    <button class="secondary-button" id="resetFiltersButton">
+                        <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">refresh</i>
+                        Reset Filters
+                    </button>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="elements-tab">
+                <div class="control-section">
+                    <div class="control-title">
+                        <i class="material-icons">layers</i>
+                        Elements
+                    </div>
+                    
+                    <div class="element-list" id="elementList">
+                        <div style="text-align: center; padding: 20px; color: #8e8e8e;">
+                            No elements yet. Add text, shapes, or images to get started!
+                        </div>
+                    </div>
+                    
+                    <div id="elementProperties" style="display: none;">
+                        <div class="control-group">
+                            <label>Position X</label>
+                            <div class="range-container">
+                                <input type="range" id="elementX" min="0" max="1080" value="540">
+                                <span id="elementXValue">540px</span>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label>Position Y</label>
+                            <div class="range-container">
+                                <input type="range" id="elementY" min="0" max="1080" value="540">
+                                <span id="elementYValue">540px</span>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label>Opacity</label>
+                            <div class="range-container">
+                                <input type="range" id="elementOpacity" min="0" max="100" value="100">
+                                <span id="elementOpacityValue">100%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label>Rotation</label>
+                            <div class="range-container">
+                                <input type="range" id="elementRotation" min="-180" max="180" value="0">
+                                <span id="elementRotationValue">0°</span>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label>Scale</label>
+                            <div class="range-container">
+                                <input type="range" id="elementScale" min="10" max="200" value="100">
+                                <span id="elementScaleValue">100%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <div class="toggle-container">
+                                <button class="toolbar-button" id="bringToFrontButton" title="Bring to Front">
+                                    <i class="material-icons">flip_to_front</i>
+                                </button>
+                                <button class="toolbar-button" id="sendToBackButton" title="Send to Back">
+                                    <i class="material-icons">flip_to_back</i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <button class="secondary-button delete" id="deleteElementButton">
+                                <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">delete</i>
+                                Delete Element
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="export-tab">
+                <div class="control-section">
+                    <div class="control-title">
+                        <i class="material-icons">download</i>
+                        Export Options
+                    </div>
+                    
+                    <div class="export-options">
+                        <div class="export-option active" data-format="png">
+                            <div>
+                                <div class="export-option-name">PNG</div>
+                                <div class="export-option-size">Best quality, larger file size</div>
+                            </div>
+                            <i class="material-icons">check_circle</i>
+                        </div>
+                        
+                        <div class="export-option" data-format="jpg">
+                            <div>
+                                <div class="export-option-name">JPG</div>
+                                <div class="export-option-size">Good quality, smaller file size</div>
+                            </div>
+                        </div>
+                        
+                        <div class="export-option active" data-size="post">
+                            <div>
+                                <div class="export-option-name">Instagram Post</div>
+                                <div class="export-option-size">1080 x 1080 pixels</div>
+                            </div>
+                            <i class="material-icons">check_circle</i>
+                        </div>
+                        
+                        <div class="export-option" data-size="story">
+                            <div>
+                                <div class="export-option-name">Instagram Story</div>
+                                <div class="export-option-size">1080 x 1920 pixels</div>
+                            </div>
+                        </div>
+                        
+                        <div class="export-option" data-size="portrait">
+                            <div>
+                                <div class="export-option-name">Portrait</div>
+                                <div class="export-option-size">1080 x 1350 pixels</div>
+                            </div>
+                        </div>
+                        
+                        <div class="export-option" data-size="landscape">
+                            <div>
+                                <div class="export-option-name">Landscape</div>
+                                <div class="export-option-size">1080 x 608 pixels</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="exportNowButton">
+                        <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">download</i>
+                        Export Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize variables
+            const canvas = document.getElementById('postCanvas');
+            if (!canvas) {
+                console.error('Canvas element not found');
+                return;
+            }
+            
+            const ctx = canvas.getContext('2d');
+            
+            // UI Elements - check if they exist before adding event listeners
+            const getElement = (id) => {
+                const element = document.getElementById(id);
+                if (!element) {
+                    console.warn(`Element with id '${id}' not found`);
+                }
+                return element;
+            };
+            
+            const backgroundColorInput = getElement('backgroundColor');
+            const backgroundColorTextInput = getElement('backgroundColorText');
+            const textContentInput = getElement('textContent');
+            const fontSizeInput = getElement('fontSize');
+            const fontSizeRange = getElement('fontSizeRange');
+            const textColorInput = getElement('textColor');
+            const textColorText = getElement('textColorText');
+            const fontFamilySelect = getElement('fontFamily');
+            const addTextButton = getElement('addTextButton');
+            const elementList = getElement('elementList');
+            const exportButton = getElement('exportButton');
+            const resetButton = getElement('resetButton');
+            const undoButton = getElement('undoButton');
+            const redoButton = getElement('redoButton');
+            const toast = getElement('toast');
+            const gradientOptions = document.querySelectorAll('.gradient-option');
+            const patternOptions = document.querySelectorAll('.pattern-option');
+            const themePresets = document.querySelectorAll('.theme-preset');
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const exportOptions = document.querySelectorAll('.export-option');
+            const exportNowButton = getElement('exportNowButton');
+            const loadingOverlay = getElement('loadingOverlay');
+            const patternColorInput = getElement('patternColor');
+            const patternColorText = getElement('patternColorText');
+            const patternOpacityInput = getElement('patternOpacity');
+            const patternOpacityValue = getElement('patternOpacityValue');
+            
+            // Toolbar buttons
+            const zoomInButton = getElement('zoomInButton');
+            const zoomOutButton = getElement('zoomOutButton');
+            const fitButton = getElement('fitButton');
+            const gridButton = getElement('gridButton');
+            const snapButton = getElement('snapButton');
+            const centerButton = getElement('centerButton');
+            const duplicateButton = getElement('duplicateButton');
+            
+            // Text style buttons
+            const boldButton = getElement('boldButton');
+            const italicButton = getElement('italicButton');
+            const underlineButton = getElement('underlineButton');
+            const alignLeftButton = getElement('alignLeftButton');
+            const alignCenterButton = getElement('alignCenterButton');
+            const alignRightButton = getElement('alignRightButton');
+            
+            // Text controls
+            const letterSpacing = getElement('letterSpacing');
+            const letterSpacingValue = getElement('letterSpacingValue');
+            const textRotation = getElement('textRotation');
+            const textRotationValue = getElement('textRotationValue');
+            const textShadowToggle = getElement('textShadowToggle');
+            const textShadowControls = getElement('textShadowControls');
+            const shadowColor = getElement('shadowColor');
+            const shadowBlur = getElement('shadowBlur');
+            const shadowBlurValue = getElement('shadowBlurValue');
+            const shadowOffsetX = getElement('shadowOffsetX');
+            const shadowOffsetXValue = getElement('shadowOffsetXValue');
+            const shadowOffsetY = getElement('shadowOffsetY');
+            const shadowOffsetYValue = getElement('shadowOffsetYValue');
+            const textOutlineToggle = getElement('textOutlineToggle');
+            const textOutlineControls = getElement('textOutlineControls');
+            const outlineColor = getElement('outlineColor');
+            const outlineWidth = getElement('outlineWidth');
+            const outlineWidthValue = getElement('outlineWidthValue');
+            
+            // Shape controls
+            const shapeOptions = document.querySelectorAll('.shape-option');
+            const shapeColor = getElement('shapeColor');
+            const shapeSize = getElement('shapeSize');
+            const shapeSizeValue = getElement('shapeSizeValue');
+            const shapeRotation = getElement('shapeRotation');
+            const shapeRotationValue = getElement('shapeRotationValue');
+            const shapeOpacity = getElement('shapeOpacity');
+            const shapeOpacityValue = getElement('shapeOpacityValue');
+            const addShapeButton = getElement('addShapeButton');
+            
+            // Image controls
+            const uploadImageButton = getElement('uploadImageButton');
+            const imageInput = getElement('imageInput');
+            const imageSize = getElement('imageSize');
+            const imageSizeValue = getElement('imageSizeValue');
+            const imageRotation = getElement('imageRotation');
+            const imageRotationValue = getElement('imageRotationValue');
+            const imageOpacity = getElement('imageOpacity');
+            const imageOpacityValue = getElement('imageOpacityValue');
+            const imageBorderToggle = getElement('imageBorderToggle');
+            const imageBorderControls = getElement('imageBorderControls');
+            const borderColor = getElement('borderColor');
+            const borderWidth = getElement('borderWidth');
+            const borderWidthValue = getElement('borderWidthValue');
+            const imageBorderRadius = getElement('imageBorderRadius');
+            const imageBorderRadiusValue = getElement('imageBorderRadiusValue');
+            const imageShadowToggle = getElement('imageShadowToggle');
+            
+            // Background image controls
+            const uploadBackgroundButton = getElement('uploadBackgroundButton');
+            const backgroundImageInput = getElement('backgroundImageInput');
+            
+            // Filter controls
+            const filterBrightness = getElement('filterBrightness');
+            const filterBrightnessValue = getElement('filterBrightnessValue');
+            const filterContrast = getElement('filterContrast');
+            const filterContrastValue = getElement('filterContrastValue');
+            const filterSaturation = getElement('filterSaturation');
+            const filterSaturationValue = getElement('filterSaturationValue');
+            const filterBlur = getElement('filterBlur');
+            const filterBlurValue = getElement('filterBlurValue');
+            const filterHueRotate = getElement('filterHueRotate');
+            const filterHueRotateValue = getElement('filterHueRotateValue');
+            const filterSepia = getElement('filterSepia');
+            const filterSepiaValue = getElement('filterSepiaValue');
+            const filterGrayscale = getElement('filterGrayscale');
+            const filterGrayscaleValue = getElement('filterGrayscaleValue');
+            const filterInvert = getElement('filterInvert');
+            const filterInvertValue = getElement('filterInvertValue');
+            const resetFiltersButton = getElement('resetFiltersButton');
+            
+            // Element properties
+            const elementProperties = getElement('elementProperties');
+            const elementX = getElement('elementX');
+            const elementXValue = getElement('elementXValue');
+            const elementY = getElement('elementY');
+            const elementYValue = getElement('elementYValue');
+            const elementOpacity = getElement('elementOpacity');
+            const elementOpacityValue = getElement('elementOpacityValue');
+            const elementRotation = getElement('elementRotation');
+            const elementRotationValue = getElement('elementRotationValue');
+            const elementScale = getElement('elementScale');
+            const elementScaleValue = getElement('elementScaleValue');
+            const bringToFrontButton = getElement('bringToFrontButton');
+            const sendToBackButton = getElement('sendToBackButton');
+            const deleteElementButton = getElement('deleteElementButton');
+            
+            // State
+            let elements = [];
+            let selectedElementId = null;
+            let isDragging = false;
+            let dragStartX = 0;
+            let dragStartY = 0;
+            let activeGradient = 'none';
+            let activePattern = 'none';
+            let patternColor = '#000000';
+            let patternOpacity = 30;
+            let backgroundImage = null;
+            let exportFormat = 'png';
+            let exportSize = 'post';
+            let zoomLevel = 1;
+            let showGrid = false;
+            let snapToGrid = false;
+            let undoStack = [];
+            let redoStack = [];
+            let selectedShapeType = 'rectangle';
+            let isTextBold = false;
+            let isTextItalic = false;
+            let isTextUnderline = false;
+            let textAlign = 'left';
+            let isTextShadowEnabled = false;
+            let isTextOutlineEnabled = false;
+            let isImageBorderEnabled = false;
+            let isImageShadowEnabled = false;
+            let filters = {
+                brightness: 100,
+                contrast: 100,
+                saturation: 100,
+                blur: 0,
+                hueRotate: 0,
+                sepia: 0,
+                grayscale: 0,
+                invert: 0
+            };
+            
+            // Initialize canvas
+            function initCanvas() {
+                try {
+                    saveState();
+                    drawCanvas();
+                } catch (error) {
+                    console.error('Error initializing canvas:', error);
+                    showToast('Error initializing canvas');
+                }
+            }
+            
+            // Show/hide loading overlay
+            function showLoading(show) {
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = show ? 'flex' : 'none';
+                }
+            }
+            
+            // Draw canvas
+            function drawCanvas() {
+                if (!ctx || !canvas) return;
+                
+                try {
+                    // Clear canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Apply filters
+                    ctx.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) blur(${filters.blur}px) hue-rotate(${filters.hueRotate}deg) sepia(${filters.sepia}%) grayscale(${filters.grayscale}%) invert(${filters.invert}%)`;
+                    
+                    // Draw background
+                    if (backgroundImage) {
+                        drawBackgroundImage();
+                    } else if (activeGradient === 'none') {
+                        ctx.fillStyle = backgroundColorInput ? backgroundColorInput.value : '#ffffff';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    } else {
+                        drawGradient(activeGradient);
+                    }
+                    
+                    // Draw pattern on top of background/gradient
+                    if (activePattern !== 'none') {
+                        drawPattern(activePattern);
+                    }
+                    
+                    // Reset filter for elements
+                    ctx.filter = 'none';
+                    
+                    // Draw elements
+                    elements.forEach(element => {
+                        try {
+                            drawElement(element);
+                        } catch (error) {
+                            console.error('Error drawing element:', error, element);
+                        }
+                    });
+                    
+                    // Draw grid if enabled
+                    if (showGrid) {
+                        drawGrid();
+                    }
+                } catch (error) {
+                    console.error('Error in drawCanvas:', error);
+                    showToast('Error drawing canvas');
+                }
+            }
+            
+            // Draw element based on type
+            function drawElement(element) {
+                if (!ctx) return;
+                
+                ctx.save();
+                
+                // Apply transformations
+                ctx.translate(element.x, element.y);
+                ctx.rotate(element.rotation * Math.PI / 180);
+                ctx.scale(element.scale, element.scale);
+                ctx.globalAlpha = element.opacity;
+                
+                if (element.type === 'text') {
+                    drawTextElement(element);
+                } else if (element.type === 'shape') {
+                    drawShapeElement(element);
+                } else if (element.type === 'image') {
+                    drawImageElement(element);
+                }
+                
+                ctx.restore();
+                
+                // Draw selection outline if selected
+                if (element.id === selectedElementId) {
+                    drawSelectionOutline(element);
+                }
+            }
+            
+            // Draw text element
+            function drawTextElement(element) {
+                if (!ctx) return;
+                
+                let fontStyle = '';
+                if (element.fontStyle.bold) fontStyle += 'bold ';
+                if (element.fontStyle.italic) fontStyle += 'italic ';
+                
+                ctx.font = `${fontStyle}${element.fontSize}px ${element.fontFamily}`;
+                
+                // Apply text shadow if enabled
+                if (element.textShadow && element.textShadow.enabled) {
+                    ctx.shadowColor = element.textShadow.color;
+                    ctx.shadowBlur = element.textShadow.blur;
+                    ctx.shadowOffsetX = element.textShadow.offsetX;
+                    ctx.shadowOffsetY = element.textShadow.offsetY;
+                }
+                
+                // Apply letter spacing if supported
+                if (ctx.letterSpacing !== undefined) {
+                    ctx.letterSpacing = `${element.letterSpacing}px`;
+                }
+                
+                // Set text alignment
+                ctx.textAlign = element.textAlign;
+                ctx.textBaseline = 'middle';
+                
+                // Calculate position based on text alignment
+                let xPos = 0;
+                const textMetrics = ctx.measureText(element.content);
+                
+                switch(element.textAlign) {
+                    case 'left':
+                        xPos = -textMetrics.width / 2;
+                        break;
+                    case 'right':
+                        xPos = textMetrics.width / 2;
+                        break;
+                    case 'center':
+                    default:
+                        xPos = 0;
+                        break;
+                }
+                
+                // Draw text outline if enabled
+                if (element.textOutline && element.textOutline.enabled) {
+                    ctx.strokeStyle = element.textOutline.color;
+                    ctx.lineWidth = element.textOutline.width;
+                    ctx.strokeText(element.content, xPos, 0);
+                }
+                
+                // Draw text fill
+                ctx.fillStyle = element.color;
+                ctx.fillText(element.content, xPos, 0);
+                
+                // Draw underline if enabled
+                if (element.fontStyle.underline) {
+                    const textWidth = textMetrics.width;
+                    const yOffset = element.fontSize / 3;
+                    
+                    ctx.beginPath();
+                    let underlineX = xPos;
+                    switch(element.textAlign) {
+                        case 'left':
+                            underlineX = xPos;
+                            break;
+                        case 'right':
+                            underlineX = xPos - textWidth;
+                            break;
+                        case 'center':
+                        default:
+                            underlineX = xPos - textWidth / 2;
+                            break;
+                    }
+                    
+                    ctx.moveTo(underlineX, yOffset);
+                    ctx.lineTo(underlineX + textWidth, yOffset);
+                    ctx.strokeStyle = element.color;
+                    ctx.lineWidth = element.fontSize / 15;
+                    ctx.stroke();
+                }
+            }
+            
+            // Draw shape element
+            function drawShapeElement(element) {
+                if (!ctx) return;
+                
+                ctx.fillStyle = element.color;
+                
+                const halfSize = element.size / 2;
+                
+                switch (element.shapeType) {
+                    case 'rectangle':
+                        ctx.fillRect(-halfSize, -halfSize, element.size, element.size);
+                        break;
+                    case 'circle':
+                        ctx.beginPath();
+                        ctx.arc(0, 0, halfSize, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                    case 'triangle':
+                        ctx.beginPath();
+                        ctx.moveTo(0, -halfSize);
+                        ctx.lineTo(halfSize, halfSize);
+                        ctx.lineTo(-halfSize, halfSize);
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                    case 'line':
+                        ctx.strokeStyle = element.color;
+                        ctx.lineWidth = element.size / 20;
+                        ctx.beginPath();
+                        ctx.moveTo(-halfSize, 0);
+                        ctx.lineTo(halfSize, 0);
+                        ctx.stroke();
+                        break;
+                    case 'star':
+                        drawStar(0, 0, 5, halfSize, halfSize / 2);
+                        break;
+                    case 'heart':
+                        drawHeart(0, 0, halfSize);
+                        break;
+                }
+            }
+            
+            // Draw image element
+            function drawImageElement(element) {
+                if (!ctx || !element.image) return;
+                
+                const halfSize = element.size / 2;
+                
+                // Draw border if enabled
+                if (element.border && element.border.enabled) {
+                    ctx.fillStyle = element.border.color;
+                    
+                    if (element.borderRadius > 0) {
+                        roundRect(
+                            ctx, 
+                            -halfSize - element.border.width, 
+                            -halfSize - element.border.width, 
+                            element.size + element.border.width * 2, 
+                            element.size + element.border.width * 2, 
+                            element.borderRadius + element.border.width / 2
+                        );
+                        ctx.fill();
+                    } else {
+                        ctx.fillRect(
+                            -halfSize - element.border.width, 
+                            -halfSize - element.border.width, 
+                            element.size + element.border.width * 2, 
+                            element.size + element.border.width * 2
+                        );
+                    }
+                }
+                
+                // Draw shadow if enabled
+                if (element.shadow && element.shadow.enabled) {
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowOffsetX = 3;
+                    ctx.shadowOffsetY = 3;
+                }
+                
+                // Draw image with border radius if applicable
+                if (element.borderRadius > 0) {
+                    ctx.save();
+                    roundRect(ctx, -halfSize, -halfSize, element.size, element.size, element.borderRadius);
+                    ctx.clip();
+                    ctx.drawImage(element.image, -halfSize, -halfSize, element.size, element.size);
+                    ctx.restore();
+                } else {
+                    ctx.drawImage(element.image, -halfSize, -halfSize, element.size, element.size);
+                }
+            }
+            
+            // Draw selection outline
+            function drawSelectionOutline(element) {
+                if (!ctx) return;
+                
+                ctx.save();
+                ctx.translate(element.x, element.y);
+                ctx.rotate(element.rotation * Math.PI / 180);
+                ctx.scale(element.scale, element.scale);
+                
+                let width, height;
+                
+                if (element.type === 'text') {
+                    ctx.font = `${element.fontStyle.bold ? 'bold ' : ''}${element.fontStyle.italic ? 'italic ' : ''}${element.fontSize}px ${element.fontFamily}`;
+                    ctx.textAlign = element.textAlign;
+                    const textMetrics = ctx.measureText(element.content);
+                    width = textMetrics.width + 20;
+                    height = element.fontSize + 20;
+                } else if (element.type === 'shape' || element.type === 'image') {
+                    width = element.size + 20;
+                    height = element.size + 20;
+                }
+                
+                ctx.strokeStyle = '#0095f6';
+                ctx.lineWidth = 2 / element.scale;
+                ctx.setLineDash([5, 5]);
+                ctx.strokeRect(-width / 2, -height / 2, width, height);
+                
+                // Draw resize handles
+                const handleSize = 10 / element.scale;
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(-width / 2 - handleSize / 2, -height / 2 - handleSize / 2, handleSize, handleSize);
+                ctx.fillRect(width / 2 - handleSize / 2, -height / 2 - handleSize / 2, handleSize, handleSize);
+                ctx.fillRect(-width / 2 - handleSize / 2, height / 2 - handleSize / 2, handleSize, handleSize);
+                ctx.fillRect(width / 2 - handleSize / 2, height / 2 - handleSize / 2, handleSize, handleSize);
+                
+                ctx.strokeRect(-width / 2 - handleSize / 2, -height / 2 - handleSize / 2, handleSize, handleSize);
+                ctx.strokeRect(width / 2 - handleSize / 2, -height / 2 - handleSize / 2, handleSize, handleSize);
+                ctx.strokeRect(-width / 2 - handleSize / 2, height / 2 - handleSize / 2, handleSize, handleSize);
+                ctx.strokeRect(width / 2 - handleSize / 2, height / 2 - handleSize / 2, handleSize, handleSize);
+                
+                ctx.setLineDash([]);
+                ctx.restore();
+            }
+            
+            // Draw gradient background
+            function drawGradient(gradientType) {
+                if (!ctx) return;
+                
+                let gradient;
+                
+                switch(gradientType) {
+                    case 'sunset':
+                        gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                        gradient.addColorStop(0, '#f09433');
+                        gradient.addColorStop(0.25, '#e6683c');
+                        gradient.addColorStop(0.5, '#dc2743');
+                        gradient.addColorStop(0.75, '#cc2366');
+                        gradient.addColorStop(1, '#bc1888');
+                        break;
+                    case 'ocean':
+                        gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                        gradient.addColorStop(0, '#667eea');
+                        gradient.addColorStop(1, '#764ba2');
+                        break;
+                    case 'forest':
+                        gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                        gradient.addColorStop(0, '#11998e');
+                        gradient.addColorStop(1, '#38ef7d');
+                        break;
+                    case 'night':
+                        gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                        gradient.addColorStop(0, '#0f0c29');
+                        gradient.addColorStop(0.5, '#302b63');
+                        gradient.addColorStop(1, '#24243e');
+                        break;
+                    case 'peach':
+                        gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                        gradient.addColorStop(0, '#ff9a9e');
+                        gradient.addColorStop(1, '#fecfef');
+                        break;
+                    default:
+                        gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                        gradient.addColorStop(0, '#f5f7fa');
+                        gradient.addColorStop(1, '#c3cfe2');
+                }
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            
+            // Draw pattern background
+            function drawPattern(patternType) {
+                if (!ctx) return;
+                
+                ctx.save();
+                ctx.fillStyle = patternColor;
+                ctx.globalAlpha = patternOpacity / 100;
+                
+                switch (patternType) {
+                    case 'dots':
+                        for (let x = 10; x < canvas.width; x += 20) {
+                            for (let y = 10; y < canvas.height; y += 20) {
+                                ctx.beginPath();
+                                ctx.arc(x, y, 2, 0, Math.PI * 2);
+                                ctx.fill();
+                            }
+                        }
+                        break;
+                    case 'lines':
+                        ctx.strokeStyle = patternColor;
+                        ctx.lineWidth = 2;
+                        for (let y = 10; y < canvas.height; y += 20) {
+                            ctx.beginPath();
+                            ctx.moveTo(0, y);
+                            ctx.lineTo(canvas.width, y);
+                            ctx.stroke();
+                        }
+                        break;
+                    case 'grid':
+                        ctx.strokeStyle = patternColor;
+                        ctx.lineWidth = 1;
+                        for (let x = 10; x < canvas.width; x += 20) {
+                            ctx.beginPath();
+                            ctx.moveTo(x, 0);
+                            ctx.lineTo(x, canvas.height);
+                            ctx.stroke();
+                        }
+                        for (let y = 10; y < canvas.height; y += 20) {
+                            ctx.beginPath();
+                            ctx.moveTo(0, y);
+                            ctx.lineTo(canvas.width, y);
+                            ctx.stroke();
+                        }
+                        break;
+                    case 'diagonal':
+                        ctx.strokeStyle = patternColor;
+                        ctx.lineWidth = 1;
+                        const distance = Math.sqrt(canvas.width * canvas.width + canvas.height * canvas.height);
+                        for (let i = -distance; i < distance; i += 20) {
+                            ctx.beginPath();
+                            ctx.moveTo(i, 0);
+                            ctx.lineTo(i + distance, distance);
+                            ctx.stroke();
+                        }
+                        break;
+                    case 'checkered':
+                        const squareSize = 40;
+                        for (let x = 0; x < canvas.width; x += squareSize) {
+                            for (let y = 0; y < canvas.height; y += squareSize) {
+                                if ((x / squareSize + y / squareSize) % 2 === 0) {
+                                    ctx.fillRect(x, y, squareSize, squareSize);
+                                }
+                            }
+                        }
+                        break;
+                }
+                
+                ctx.restore();
+            }
+            
+            // Draw background image
+            function drawBackgroundImage() {
+                if (!ctx || !backgroundImage) return;
+                
+                // Calculate aspect ratios
+                const canvasRatio = canvas.width / canvas.height;
+                const imageRatio = backgroundImage.width / backgroundImage.height;
+                
+                let drawWidth, drawHeight, drawX, drawY;
+                
+                if (imageRatio > canvasRatio) {
+                    drawHeight = canvas.height;
+                    drawWidth = backgroundImage.width * (canvas.height / backgroundImage.height);
+                    drawX = (canvas.width - drawWidth) / 2;
+                    drawY = 0;
+                } else {
+                    drawWidth = canvas.width;
+                    drawHeight = backgroundImage.height * (canvas.width / backgroundImage.width);
+                    drawX = 0;
+                    drawY = (canvas.height - drawHeight) / 2;
+                }
+                
+                ctx.drawImage(backgroundImage, drawX, drawY, drawWidth, drawHeight);
+            }
+            
+            // Draw grid
+            function drawGrid() {
+                if (!ctx) return;
+                
+                ctx.save();
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+                ctx.lineWidth = 1;
+                
+                const gridSize = 50;
+                
+                for (let x = 0; x <= canvas.width; x += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                
+                for (let y = 0; y <= canvas.height; y += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            }
+            
+            // Draw star shape
+            function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
+                if (!ctx) return;
+                
+                let rot = Math.PI / 2 * 3;
+                let x = cx;
+                let y = cy;
+                const step = Math.PI / spikes;
+                
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - outerRadius);
+                
+                for (let i = 0; i < spikes; i++) {
+                    x = cx + Math.cos(rot) * outerRadius;
+                    y = cy + Math.sin(rot) * outerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                    
+                    x = cx + Math.cos(rot) * innerRadius;
+                    y = cy + Math.sin(rot) * innerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                }
+                
+                ctx.lineTo(cx, cy - outerRadius);
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            // Draw heart shape
+            function drawHeart(cx, cy, size) {
+                if (!ctx) return;
+                
+                const x = cx;
+                const y = cy;
+                const width = size;
+                const height = size;
+                
+                ctx.beginPath();
+                const topCurveHeight = height * 0.3;
+                ctx.moveTo(x, y + topCurveHeight);
+                
+                // Top left curve
+                ctx.bezierCurveTo(
+                    x, y,
+                    x - width / 2, y,
+                    x - width / 2, y + topCurveHeight
+                );
+                
+                // Bottom left curve
+                ctx.bezierCurveTo(
+                    x - width / 2, y + (height + topCurveHeight) / 2,
+                    x, y + (height + topCurveHeight) / 2,
+                    x, y + height
+                );
+                
+                // Bottom right curve
+                ctx.bezierCurveTo(
+                    x, y + (height + topCurveHeight) / 2,
+                    x + width / 2, y + (height + topCurveHeight) / 2,
+                    x + width / 2, y + topCurveHeight
+                );
+                
+                // Top right curve
+                ctx.bezierCurveTo(
+                    x + width / 2, y,
+                    x, y,
+                    x, y + topCurveHeight
+                );
+                
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            // Draw rounded rectangle
+            function roundRect(ctx, x, y, width, height, radius) {
+                if (!ctx) return;
+                
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + width - radius, y);
+                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+                ctx.lineTo(x + width, y + height - radius);
+                ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                ctx.lineTo(x + radius, y + height);
+                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+                ctx.lineTo(x, y + radius);
+                ctx.quadraticCurveTo(x, y, x + radius, y);
+                ctx.closePath();
+            }
+            
+            // Add text element
+            function addText() {
+                const content = textContentInput ? textContentInput.value.trim() : '';
+                if (!content) {
+                    showToast('Please enter some text');
+                    return;
+                }
+                
+                saveState();
+                
+                const newElement = {
+                    id: Date.now(),
+                    type: 'text',
+                    content: content,
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    fontSize: parseInt(fontSizeInput ? fontSizeInput.value : 60),
+                    color: textColorInput ? textColorInput.value : '#262626',
+                    fontFamily: fontFamilySelect ? fontFamilySelect.value : 'Arial',
+                    rotation: 0,
+                    scale: 1,
+                    opacity: 1,
+                    letterSpacing: parseInt(letterSpacing ? letterSpacing.value : 0),
+                    textAlign: textAlign,
+                    fontStyle: {
+                        bold: isTextBold,
+                        italic: isTextItalic,
+                        underline: isTextUnderline
+                    },
+                    textShadow: {
+                        enabled: isTextShadowEnabled,
+                        color: shadowColor ? shadowColor.value : '#000000',
+                        blur: parseInt(shadowBlur ? shadowBlur.value : 5),
+                        offsetX: parseInt(shadowOffsetX ? shadowOffsetX.value : 2),
+                        offsetY: parseInt(shadowOffsetY ? shadowOffsetY.value : 2)
+                    },
+                    textOutline: {
+                        enabled: isTextOutlineEnabled,
+                        color: outlineColor ? outlineColor.value : '#ffffff',
+                        width: parseInt(outlineWidth ? outlineWidth.value : 2)
+                    }
+                };
+                
+                elements.push(newElement);
+                selectedElementId = newElement.id;
+                updateElementList();
+                drawCanvas();
+                
+                // Clear input
+                if (textContentInput) {
+                    textContentInput.value = '';
+                }
+            }
+            
+            // Add shape element
+            function addShape() {
+                saveState();
+                
+                const newElement = {
+                    id: Date.now(),
+                    type: 'shape',
+                    shapeType: selectedShapeType,
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    color: shapeColor ? shapeColor.value : '#0095f6',
+                    size: parseInt(shapeSize ? shapeSize.value : 200),
+                    rotation: parseInt(shapeRotation ? shapeRotation.value : 0),
+                    scale: 1,
+                    opacity: parseInt(shapeOpacity ? shapeOpacity.value : 100) / 100
+                };
+                
+                elements.push(newElement);
+                selectedElementId = newElement.id;
+                updateElementList();
+                drawCanvas();
+            }
+            
+            // Add image element
+            function addImage(imageSrc) {
+                if (!imageSrc) return;
+                
+                showLoading(true);
+                
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = function() {
+                    saveState();
+                    
+                    const newElement = {
+                        id: Date.now(),
+                        type: 'image',
+                        image: img,
+                        x: canvas.width / 2,
+                        y: canvas.height / 2,
+                        size: parseInt(imageSize ? imageSize.value : 300),
+                        rotation: parseInt(imageRotation ? imageRotation.value : 0),
+                        scale: 1,
+                        opacity: parseInt(imageOpacity ? imageOpacity.value : 100) / 100,
+                        border: {
+                            enabled: isImageBorderEnabled,
+                            color: borderColor ? borderColor.value : '#ffffff',
+                            width: parseInt(borderWidth ? borderWidth.value : 5)
+                        },
+                        borderRadius: parseInt(imageBorderRadius ? imageBorderRadius.value : 0),
+                        shadow: {
+                            enabled: isImageShadowEnabled
+                        }
+                    };
+                    
+                    elements.push(newElement);
+                    selectedElementId = newElement.id;
+                    updateElementList();
+                    drawCanvas();
+                    showLoading(false);
+                };
+                
+                img.onerror = function() {
+                    showToast('Error loading image');
+                    showLoading(false);
+                };
+                
+                img.src = imageSrc;
+            }
+            
+            // Update element list
+            function updateElementList() {
+                if (!elementList) return;
+                
+                if (elements.length === 0) {
+                    elementList.innerHTML = `
+                        <div style="text-align: center; padding: 20px; color: #8e8e8e;">
+                            No elements yet. Add text, shapes, or images to get started!
+                        </div>
+                    `;
+                    if (elementProperties) elementProperties.style.display = 'none';
+                    return;
+                }
+                
+                elementList.innerHTML = '';
+                
+                elements.forEach((element, index) => {
+                    const elementItem = document.createElement('div');
+                    elementItem.className = `element-item ${element.id === selectedElementId ? 'active' : ''}`;
+                    elementItem.dataset.id = element.id;
+                    
+                    const elementPreview = document.createElement('div');
+                    elementPreview.className = 'element-preview';
+                    
+                    if (element.type === 'text') {
+                        elementPreview.style.fontFamily = element.fontFamily;
+                        elementPreview.style.color = element.color;
+                        elementPreview.textContent = element.content.length > 5 ? element.content.substring(0, 5) + '...' : element.content;
+                    } else if (element.type === 'shape') {
+                        elementPreview.innerHTML = `<i class="material-icons" style="color: ${element.color}">category</i>`;
+                    } else if (element.type === 'image' && element.image) {
+                        const img = document.createElement('img');
+                        img.src = element.image.src;
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.objectFit = 'contain';
+                        elementPreview.appendChild(img);
+                    } else {
+                        elementPreview.innerHTML = `<i class="material-icons">category</i>`;
+                    }
+                    
+                    const elementInfo = document.createElement('div');
+                    elementInfo.className = 'element-info';
+                    
+                    const elementName = document.createElement('div');
+                    elementName.className = 'element-name';
+                    
+                    if (element.type === 'text') {
+                        elementName.textContent = element.content.length > 15 ? element.content.substring(0, 15) + '...' : element.content;
+                    } else if (element.type === 'shape') {
+                        elementName.textContent = `${element.shapeType.charAt(0).toUpperCase() + element.shapeType.slice(1)} Shape`;
+                    } else if (element.type === 'image') {
+                        elementName.textContent = 'Image';
+                    }
+                    
+                    elementInfo.appendChild(elementName);
+                    
+                    const elementActions = document.createElement('div');
+                    elementActions.className = 'element-actions';
+                    
+                    const moveUpButton = document.createElement('button');
+                    moveUpButton.className = 'icon-button';
+                    moveUpButton.innerHTML = '<i class="material-icons">keyboard_arrow_up</i>';
+                    moveUpButton.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        moveElementUp(element.id);
+                    });
+                    
+                    const moveDownButton = document.createElement('button');
+                    moveDownButton.className = 'icon-button';
+                    moveDownButton.innerHTML = '<i class="material-icons">keyboard_arrow_down</i>';
+                    moveDownButton.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        moveElementDown(element.id);
+                    });
+                    
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'icon-button delete';
+                    deleteButton.innerHTML = '<i class="material-icons">delete</i>';
+                    deleteButton.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteElement(element.id);
+                    });
+                    
+                    elementActions.appendChild(moveUpButton);
+                    elementActions.appendChild(moveDownButton);
+                    elementActions.appendChild(deleteButton);
+                    
+                    elementItem.appendChild(elementPreview);
+                    elementItem.appendChild(elementInfo);
+                    elementItem.appendChild(elementActions);
+                    
+                    elementItem.addEventListener('click', () => {
+                        selectElement(element.id);
+                    });
+                    
+                    elementList.appendChild(elementItem);
+                });
+                
+                // Update element properties panel if an element is selected
+                if (selectedElementId) {
+                    updateElementProperties();
+                }
+            }
+            
+            // Update element properties panel
+            function updateElementProperties() {
+                const element = elements.find(el => el.id === selectedElementId);
+                if (!element || !elementProperties) {
+                    if (elementProperties) elementProperties.style.display = 'none';
+                    return;
+                }
+                
+                elementProperties.style.display = 'block';
+                
+                // Update position controls
+                if (elementX) {
+                    elementX.value = element.x;
+                    elementXValue.textContent = Math.round(element.x) + 'px';
+                }
+                
+                if (elementY) {
+                    elementY.value = element.y;
+                    elementYValue.textContent = Math.round(element.y) + 'px';
+                }
+                
+                // Update opacity control
+                if (elementOpacity) {
+                    elementOpacity.value = element.opacity * 100;
+                    elementOpacityValue.textContent = Math.round(element.opacity * 100) + '%';
+                }
+                
+                // Update rotation control
+                if (elementRotation) {
+                    elementRotation.value = element.rotation;
+                    elementRotationValue.textContent = element.rotation + '°';
+                }
+                
+                // Update scale control
+                if (elementScale) {
+                    elementScale.value = element.scale * 100;
+                    elementScaleValue.textContent = Math.round(element.scale * 100) + '%';
+                }
+            }
+            
+            // Select element
+            function selectElement(id) {
+                selectedElementId = id;
+                updateElementList();
+                drawCanvas();
+            }
+            
+            // Delete element
+            function deleteElement(id) {
+                saveState();
+                elements = elements.filter(element => element.id !== id);
+                if (selectedElementId === id) {
+                    selectedElementId = null;
+                }
+                updateElementList();
+                drawCanvas();
+            }
+            
+            // Duplicate element
+            function duplicateElement(id) {
+                saveState();
+                const element = elements.find(el => el.id === id);
+                if (!element) return;
+                
+                const newElement = JSON.parse(JSON.stringify(element));
+                newElement.id = Date.now();
+                newElement.x += 20;
+                newElement.y += 20;
+                
+                // For images, we need to clone image object
+                if (element.type === 'image' && element.image) {
+                    newElement.image = element.image;
+                }
+                
+                elements.push(newElement);
+                selectedElementId = newElement.id;
+                updateElementList();
+                drawCanvas();
+            }
+            
+            // Move element up in z-order
+            function moveElementUp(id) {
+                saveState();
+                const index = elements.findIndex(element => element.id === id);
+                if (index < elements.length - 1) {
+                    [elements[index], elements[index + 1]] = [elements[index + 1], elements[index]];
+                    updateElementList();
+                    drawCanvas();
+                }
+            }
+            
+            // Move element down in z-order
+            function moveElementDown(id) {
+                saveState();
+                const index = elements.findIndex(element => element.id === id);
+                if (index > 0) {
+                    [elements[index], elements[index - 1]] = [elements[index - 1], elements[index]];
+                    updateElementList();
+                    drawCanvas();
+                }
+            }
+            
+            // Bring element to front
+            function bringElementToFront(id) {
+                saveState();
+                const index = elements.findIndex(element => element.id === id);
+                if (index > -1 && index < elements.length - 1) {
+                    const element = elements.splice(index, 1)[0];
+                    elements.push(element);
+                    updateElementList();
+                    drawCanvas();
+                }
+            }
+            
+            // Send element to back
+            function sendElementToBack(id) {
+                saveState();
+                const index = elements.findIndex(element => element.id === id);
+                if (index > 0) {
+                    const element = elements.splice(index, 1)[0];
+                    elements.unshift(element);
+                    updateElementList();
+                    drawCanvas();
+                }
+            }
+            
+            // Center element
+            function centerElement(id) {
+                saveState();
+                const element = elements.find(el => el.id === id);
+                if (!element) return;
+                
+                element.x = canvas.width / 2;
+                element.y = canvas.height / 2;
+                
+                updateElementList();
+                drawCanvas();
+            }
+            
+            // Get element at position
+            function getElementAtPosition(x, y) {
+                // Check elements in reverse order (top to bottom)
+                for (let i = elements.length - 1; i >= 0; i--) {
+                    const element = elements[i];
+                    
+                    let width, height;
+                    
+                    if (element.type === 'text') {
+                        if (!ctx) continue;
+                        
+                        ctx.font = `${element.fontStyle.bold ? 'bold ' : ''}${element.fontStyle.italic ? 'italic ' : ''}${element.fontSize}px ${element.fontFamily}`;
+                        ctx.textAlign = element.textAlign;
+                        const textMetrics = ctx.measureText(element.content);
+                        width = textMetrics.width * element.scale;
+                        height = element.fontSize * element.scale;
+                    } else if (element.type === 'shape' || element.type === 'image') {
+                        width = element.size * element.scale;
+                        height = element.size * element.scale;
+                    }
+                    
+                    // Apply rotation to hit test
+                    const dx = x - element.x;
+                    const dy = y - element.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx) - element.rotation * Math.PI / 180;
+                    const rotatedX = Math.cos(angle) * distance;
+                    const rotatedY = Math.sin(angle) * distance;
+                    
+                    // Check if point is within element bounds
+                    if (
+                        Math.abs(rotatedX) <= width / 2 &&
+                        Math.abs(rotatedY) <= height / 2
+                    ) {
+                        return element;
+                    }
+                }
+                return null;
+            }
+            
+            // Snap position to grid
+            function snapToGridPosition(x, y) {
+                if (!snapToGrid) return { x, y };
+                
+                const gridSize = 50;
+                const snappedX = Math.round(x / gridSize) * gridSize;
+                const snappedY = Math.round(y / gridSize) * gridSize;
+                
+                return { x: snappedX, y: snappedY };
+            }
+            
+            // Save state for undo/redo
+            function saveState() {
+                if (!elements) return;
+                
+                try {
+                    undoStack.push(JSON.stringify({
+                        elements: elements.map(el => {
+                            // For images, we need to keep a reference to image object
+                            const copy = { ...el };
+                            if (el.type === 'image' && el.image) {
+                                copy.imageSrc = el.image.src;
+                            }
+                            return copy;
+                        }),
+                        activeGradient,
+                        activePattern,
+                        patternColor,
+                        patternOpacity,
+                        backgroundColor: backgroundColorInput ? backgroundColorInput.value : '#ffffff',
+                        filters: { ...filters }
+                    }));
+                    
+                    // Limit undo stack size
+                    if (undoStack.length > 20) {
+                        undoStack.shift();
+                    }
+                    
+                    // Clear redo stack when new action is performed
+                    redoStack = [];
+                } catch (error) {
+                    console.error('Error saving state:', error);
+                }
+            }
+            
+            // Undo
+            function undo() {
+                if (undoStack.length === 0) {
+                    showToast('Nothing to undo');
+                    return;
+                }
+                
+                try {
+                    redoStack.push(JSON.stringify({
+                        elements: elements.map(el => {
+                            const copy = { ...el };
+                            if (el.type === 'image' && el.image) {
+                                copy.imageSrc = el.image.src;
+                            }
+                            return copy;
+                        }),
+                        activeGradient,
+                        activePattern,
+                        patternColor,
+                        patternOpacity,
+                        backgroundColor: backgroundColorInput ? backgroundColorInput.value : '#ffffff',
+                        filters: { ...filters }
+                    }));
+                    
+                    const state = JSON.parse(undoStack.pop());
+                    
+                    // Restore elements, recreating image objects if needed
+                    const restoredElements = [];
+                    
+                    // Use Promise.all to handle image loading
+                    const imagePromises = state.elements.map(el => {
+                        return new Promise((resolve) => {
+                            if (el.type === 'image' && el.imageSrc) {
+                                const img = new Image();
+                                img.crossOrigin = 'anonymous';
+                                img.onload = () => {
+                                    el.image = img;
+                                    delete el.imageSrc;
+                                    resolve(el);
+                                };
+                                img.onerror = () => {
+                                    // If image fails to load, still resolve element
+                                    delete el.imageSrc;
+                                    resolve(el);
+                                };
+                                img.src = el.imageSrc;
+                            } else {
+                                resolve(el);
+                            }
+                        });
+                    });
+                    
+                    Promise.all(imagePromises).then(loadedElements => {
+                        elements = loadedElements;
+                        activeGradient = state.activeGradient;
+                        activePattern = state.activePattern;
+                        patternColor = state.patternColor;
+                        patternOpacity = state.patternOpacity;
+                        if (backgroundColorInput) backgroundColorInput.value = state.backgroundColor;
+                        if (backgroundColorTextInput) backgroundColorTextInput.value = state.backgroundColor;
+                        filters = state.filters;
+                        
+                        updateGradientOptions();
+                        updatePatternOptions();
+                        updatePatternControls();
+                        updateFilterUI();
+                        updateElementList();
+                        drawCanvas();
+                    });
+                } catch (error) {
+                    console.error('Error during undo:', error);
+                    showToast('Error undoing');
+                }
+            }
+            
+            // Redo
+            function redo() {
+                if (redoStack.length === 0) {
+                    showToast('Nothing to redo');
+                    return;
+                }
+                
+                try {
+                    undoStack.push(JSON.stringify({
+                        elements: elements.map(el => {
+                            const copy = { ...el };
+                            if (el.type === 'image' && el.image) {
+                                copy.imageSrc = el.image.src;
+                            }
+                            return copy;
+                        }),
+                        activeGradient,
+                        activePattern,
+                        patternColor,
+                        patternOpacity,
+                        backgroundColor: backgroundColorInput ? backgroundColorInput.value : '#ffffff',
+                        filters: { ...filters }
+                    }));
+                    
+                    const state = JSON.parse(redoStack.pop());
+                    
+                    // Restore elements, recreating image objects if needed
+                    const restoredElements = [];
+                    
+                    // Use Promise.all to handle image loading
+                    const imagePromises = state.elements.map(el => {
+                        return new Promise((resolve) => {
+                            if (el.type === 'image' && el.imageSrc) {
+                                const img = new Image();
+                                img.crossOrigin = 'anonymous';
+                                img.onload = () => {
+                                    el.image = img;
+                                    delete el.imageSrc;
+                                    resolve(el);
+                                };
+                                img.onerror = () => {
+                                    // If image fails to load, still resolve element
+                                    delete el.imageSrc;
+                                    resolve(el);
+                                };
+                                img.src = el.imageSrc;
+                            } else {
+                                resolve(el);
+                            }
+                        });
+                    });
+                    
+                    Promise.all(imagePromises).then(loadedElements => {
+                        elements = loadedElements;
+                        activeGradient = state.activeGradient;
+                        activePattern = state.activePattern;
+                        patternColor = state.patternColor;
+                        patternOpacity = state.patternOpacity;
+                        if (backgroundColorInput) backgroundColorInput.value = state.backgroundColor;
+                        if (backgroundColorTextInput) backgroundColorTextInput.value = state.backgroundColor;
+                        filters = state.filters;
+                        
+                        updateGradientOptions();
+                        updatePatternOptions();
+                        updatePatternControls();
+                        updateFilterUI();
+                        updateElementList();
+                        drawCanvas();
+                    });
+                } catch (error) {
+                    console.error('Error during redo:', error);
+                    showToast('Error redoing');
+                }
+            }
+            
+            // Update gradient options
+            function updateGradientOptions() {
+                if (!gradientOptions) return;
+                
+                gradientOptions.forEach(option => {
+                    if (option.dataset.gradient === activeGradient) {
+                        option.classList.add('active');
+                    } else {
+                        option.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Update pattern options
+            function updatePatternOptions() {
+                if (!patternOptions) return;
+                
+                patternOptions.forEach(option => {
+                    if (option.dataset.pattern === activePattern) {
+                        option.classList.add('active');
+                    } else {
+                        option.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Update pattern color/opacity controls
+            function updatePatternControls() {
+                if (patternColorInput && patternColorText) {
+                    patternColorInput.value = patternColor;
+                    patternColorText.value = patternColor;
+                }
+                
+                if (patternOpacityInput && patternOpacityValue) {
+                    patternOpacityInput.value = patternOpacity;
+                    patternOpacityValue.textContent = patternOpacity + '%';
+                }
+            }
+            
+            // Update theme presets
+            function updateThemePresets(activeTheme) {
+                if (!themePresets) return;
+                
+                themePresets.forEach(preset => {
+                    if (preset.dataset.theme === activeTheme) {
+                        preset.classList.add('active');
+                    } else {
+                        preset.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Update filter UI
+            function updateFilterUI() {
+                if (!filterBrightness) return;
+                
+                if (filterBrightnessValue) filterBrightnessValue.textContent = filters.brightness + '%';
+                if (filterContrastValue) filterContrastValue.textContent = filters.contrast + '%';
+                if (filterSaturationValue) filterSaturationValue.textContent = filters.saturation + '%';
+                if (filterBlurValue) filterBlurValue.textContent = filters.blur + 'px';
+                if (filterHueRotateValue) filterHueRotateValue.textContent = filters.hueRotate + '°';
+                if (filterSepiaValue) filterSepiaValue.textContent = filters.sepia + '%';
+                if (filterGrayscaleValue) filterGrayscaleValue.textContent = filters.grayscale + '%';
+                if (filterInvertValue) filterInvertValue.textContent = filters.invert + '%';
+                
+                if (filterBrightness) filterBrightness.value = filters.brightness;
+                if (filterContrast) filterContrast.value = filters.contrast;
+                if (filterSaturation) filterSaturation.value = filters.saturation;
+                if (filterBlur) filterBlur.value = filters.blur;
+                if (filterHueRotate) filterHueRotate.value = filters.hueRotate;
+                if (filterSepia) filterSepia.value = filters.sepia;
+                if (filterGrayscale) filterGrayscale.value = filters.grayscale;
+                if (filterInvert) filterInvert.value = filters.invert;
+            }
+            
+            // Show toast notification
+            function showToast(message) {
+                if (!toast) return;
+                
+                toast.textContent = message;
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Export canvas as image
+            function exportCanvas(format, size) {
+                // Create a temporary canvas for export
+                const exportCanvas = document.createElement('canvas');
+                let exportWidth, exportHeight;
+                
+                // Set dimensions based on export size
+                switch (size) {
+                    case 'post':
+                        exportWidth = 1080;
+                        exportHeight = 1080;
+                        break;
+                    case 'story':
+                        exportWidth = 1080;
+                        exportHeight = 1920;
+                        break;
+                    case 'portrait':
+                        exportWidth = 1080;
+                        exportHeight = 1350;
+                        break;
+                    case 'landscape':
+                        exportWidth = 1080;
+                        exportHeight = 608;
+                        break;
+                    default:
+                        exportWidth = 1080;
+                        exportHeight = 1080;
+                }
+                
+                exportCanvas.width = exportWidth;
+                exportCanvas.height = exportHeight;
+                
+                const exportCtx = exportCanvas.getContext('2d');
+                
+                // Calculate scaling factors
+                const scaleX = exportWidth / canvas.width;
+                const scaleY = exportHeight / canvas.height;
+                const scale = Math.min(scaleX, scaleY);
+                
+                // Deselect element for clean export
+                const previousSelected = selectedElementId;
+                selectedElementId = null;
+                drawCanvas();
+                
+                // Draw to export canvas
+                exportCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 
+                                   (exportWidth - canvas.width * scale) / 2,
+                                   (exportHeight - canvas.height * scale) / 2,
+                                   canvas.width * scale,
+                                   canvas.height * scale);
+                
+                // Export
+                try {
+                    const link = document.createElement('a');
+                    
+                    if (format === 'jpg') {
+                        link.download = `instagram-post-${Date.now()}.jpg`;
+                        link.href = exportCanvas.toDataURL('image/jpeg', 0.9);
+                    } else {
+                        link.download = `instagram-post-${Date.now()}.png`;
+                        link.href = exportCanvas.toDataURL('image/png');
+                    }
+                    
+                    link.click();
+                    showToast('Image exported successfully!');
+                } catch (error) {
+                    console.error('Error exporting canvas:', error);
+                    showToast('Error exporting image');
+                }
+                
+                // Restore selection
+                selectedElementId = previousSelected;
+                drawCanvas();
+            }
+            
+            // Reset canvas
+            function resetCanvas() {
+                if (confirm('Are you sure you want to reset? This will delete all elements.')) {
+                    saveState();
+                    elements = [];
+                    selectedElementId = null;
+                    activeGradient = 'none';
+                    activePattern = 'none';
+                    patternColor = '#000000';
+                    patternOpacity = 30;
+                    backgroundImage = null;
+                    if (backgroundColorInput) {
+                        backgroundColorInput.value = '#ffffff';
+                        if (backgroundColorTextInput) backgroundColorTextInput.value = '#ffffff';
+                    }
+                    filters = {
+                        brightness: 100,
+                        contrast: 100,
+                        saturation: 100,
+                        blur: 0,
+                        hueRotate: 0,
+                        sepia: 0,
+                        grayscale: 0,
+                        invert: 0
+                    };
+                    
+                    updateGradientOptions();
+                    updatePatternOptions();
+                    updatePatternControls();
+                    updateFilterUI();
+                    updateElementList();
+                    drawCanvas();
+                    showToast('Canvas reset successfully!');
+                }
+            }
+            
+            // Event listeners for tab switching
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    button.classList.add('active');
+                    const tabId = button.dataset.tab;
+                    const tabContent = document.getElementById(`${tabId}-tab`);
+                    if (tabContent) tabContent.classList.add('active');
+                });
+            });
+            
+            // Event listeners for export options
+            exportOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    if (option.dataset.format) {
+                        exportFormat = option.dataset.format;
+                        
+                        document.querySelectorAll('.export-option[data-format]').forEach(opt => {
+                            opt.classList.remove('active');
+                            const icon = opt.querySelector('.material-icons');
+                            if (icon) icon.remove();
+                        });
+                        
+                        option.classList.add('active');
+                        if (!option.querySelector('.material-icons')) {
+                            const icon = document.createElement('i');
+                            icon.className = 'material-icons';
+                            icon.textContent = 'check_circle';
+                            option.appendChild(icon);
+                        }
+                    }
+                    
+                    if (option.dataset.size) {
+                        exportSize = option.dataset.size;
+                        
+                        document.querySelectorAll('.export-option[data-size]').forEach(opt => {
+                            opt.classList.remove('active');
+                            const icon = opt.querySelector('.material-icons');
+                            if (icon) icon.remove();
+                        });
+                        
+                        option.classList.add('active');
+                        if (!option.querySelector('.material-icons')) {
+                            const icon = document.createElement('i');
+                            icon.className = 'material-icons';
+                            icon.textContent = 'check_circle';
+                            option.appendChild(icon);
+                        }
+                    }
+                });
+            });
+            
+            // Event listeners for background controls
+            if (backgroundColorInput) {
+                backgroundColorInput.addEventListener('input', (e) => {
+                    if (backgroundColorTextInput) backgroundColorTextInput.value = e.target.value;
+                    activeGradient = 'none';
+                    updateGradientOptions();
+                    drawCanvas();
+                });
+            }
+            
+            if (backgroundColorTextInput) {
+                backgroundColorTextInput.addEventListener('input', (e) => {
+                    if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                        if (backgroundColorInput) backgroundColorInput.value = e.target.value;
+                        activeGradient = 'none';
+                        updateGradientOptions();
+                        drawCanvas();
+                    }
+                });
+            }
+            
+            gradientOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    if (option.dataset.gradient) {
+                        activeGradient = option.dataset.gradient;
+                        updateGradientOptions();
+                        drawCanvas();
+                    }
+                });
+            });
+            
+            // Pattern options event listeners
+            patternOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    if (option.dataset.pattern) {
+                        activePattern = option.dataset.pattern;
+                        updatePatternOptions();
+                        drawCanvas();
+                    }
+                });
+            });
+            
+            // Pattern color event listeners
+            if (patternColorInput && patternColorText) {
+                patternColorInput.addEventListener('input', (e) => {
+                    patternColor = e.target.value;
+                    if (patternColorText) patternColorText.value = e.target.value;
+                    drawCanvas();
+                });
+                
+                patternColorText.addEventListener('input', (e) => {
+                    if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                        patternColor = e.target.value;
+                        if (patternColorInput) patternColorInput.value = e.target.value;
+                        drawCanvas();
+                    }
+                });
+            }
+            
+            // Pattern opacity event listeners
+            if (patternOpacityInput && patternOpacityValue) {
+                patternOpacityInput.addEventListener('input', (e) => {
+                    patternOpacity = parseInt(e.target.value);
+                    if (patternOpacityValue) patternOpacityValue.textContent = patternOpacity + '%';
+                    drawCanvas();
+                });
+            }
+            
+            themePresets.forEach(preset => {
+                preset.addEventListener('click', () => {
+                    saveState();
+                    const theme = preset.dataset.theme;
+                    switch(theme) {
+                        case 'white':
+                            if (backgroundColorInput) {
+                                backgroundColorInput.value = '#ffffff';
+                                if (backgroundColorTextInput) backgroundColorTextInput.value = '#ffffff';
+                            }
+                            break;
+                        case 'black':
+                            if (backgroundColorInput) {
+                                backgroundColorInput.value = '#000000';
+                                if (backgroundColorTextInput) backgroundColorTextInput.value = '#000000';
+                            }
+                            break;
+                        case 'blue':
+                            if (backgroundColorInput) {
+                                backgroundColorInput.value = '#0095f6';
+                                if (backgroundColorTextInput) backgroundColorTextInput.value = '#0095f6';
+                            }
+                            break;
+                        case 'pink':
+                            if (backgroundColorInput) {
+                                backgroundColorInput.value = '#dc2743';
+                                if (backgroundColorTextInput) backgroundColorTextInput.value = '#dc2743';
+                            }
+                            break;
+                    }
+                    activeGradient = 'none';
+                    updateGradientOptions();
+                    updateThemePresets(theme);
+                    drawCanvas();
+                });
+            });
+            
+            if (uploadBackgroundButton && backgroundImageInput) {
+                uploadBackgroundButton.addEventListener('click', () => {
+                    backgroundImageInput.click();
+                });
+                
+                backgroundImageInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    showLoading(true);
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const img = new Image();
+                        img.onload = function() {
+                            saveState();
+                            backgroundImage = img;
+                            drawCanvas();
+                            showLoading(false);
+                        };
+                        img.onerror = function() {
+                            showToast('Error loading background image');
+                            showLoading(false);
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            // Event listeners for text controls
+            if (fontSizeRange && fontSizeInput) {
+                fontSizeRange.addEventListener('input', (e) => {
+                    fontSizeInput.value = e.target.value;
+                });
+                
+                fontSizeInput.addEventListener('input', (e) => {
+                    fontSizeRange.value = e.target.value;
+                });
+            }
+            
+            if (textColorInput && textColorText) {
+                textColorInput.addEventListener('input', (e) => {
+                    if (textColorText) textColorText.value = e.target.value;
+                });
+                
+                textColorText.addEventListener('input', (e) => {
+                    if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                        if (textColorInput) textColorInput.value = e.target.value;
+                    }
+                });
+            }
+            
+            if (boldButton) {
+                boldButton.addEventListener('click', () => {
+                    isTextBold = !isTextBold;
+                    boldButton.classList.toggle('active', isTextBold);
+                });
+            }
+            
+            if (italicButton) {
+                italicButton.addEventListener('click', () => {
+                    isTextItalic = !isTextItalic;
+                    italicButton.classList.toggle('active', isTextItalic);
+                });
+            }
+            
+            if (underlineButton) {
+                underlineButton.addEventListener('click', () => {
+                    isTextUnderline = !isTextUnderline;
+                    underlineButton.classList.toggle('active', isTextUnderline);
+                });
+            }
+            
+            if (alignLeftButton && alignCenterButton && alignRightButton) {
+                alignLeftButton.addEventListener('click', () => {
+                    textAlign = 'left';
+                    alignLeftButton.classList.add('active');
+                    alignCenterButton.classList.remove('active');
+                    alignRightButton.classList.remove('active');
+                });
+                
+                alignCenterButton.addEventListener('click', () => {
+                    textAlign = 'center';
+                    alignLeftButton.classList.remove('active');
+                    alignCenterButton.classList.add('active');
+                    alignRightButton.classList.remove('active');
+                });
+                
+                alignRightButton.addEventListener('click', () => {
+                    textAlign = 'right';
+                    alignLeftButton.classList.remove('active');
+                    alignCenterButton.classList.remove('active');
+                    alignRightButton.classList.add('active');
+                });
+            }
+            
+            if (letterSpacing && letterSpacingValue) {
+                letterSpacing.addEventListener('input', (e) => {
+                    letterSpacingValue.textContent = e.target.value + 'px';
+                });
+            }
+            
+            if (textRotation && textRotationValue) {
+                textRotation.addEventListener('input', (e) => {
+                    textRotationValue.textContent = e.target.value + '°';
+                });
+            }
+            
+            if (textShadowToggle && textShadowControls) {
+                textShadowToggle.addEventListener('click', () => {
+                    isTextShadowEnabled = !isTextShadowEnabled;
+                    textShadowToggle.classList.toggle('active', isTextShadowEnabled);
+                    textShadowControls.style.display = isTextShadowEnabled ? 'block' : 'none';
+                });
+            }
+            
+            if (shadowBlur && shadowBlurValue) {
+                shadowBlur.addEventListener('input', (e) => {
+                    shadowBlurValue.textContent = e.target.value + 'px';
+                });
+            }
+            
+            if (shadowOffsetX && shadowOffsetXValue) {
+                shadowOffsetX.addEventListener('input', (e) => {
+                    shadowOffsetXValue.textContent = e.target.value + 'px';
+                });
+            }
+            
+            if (shadowOffsetY && shadowOffsetYValue) {
+                shadowOffsetY.addEventListener('input', (e) => {
+                    shadowOffsetYValue.textContent = e.target.value + 'px';
+                });
+            }
+            
+            if (textOutlineToggle && textOutlineControls) {
+                textOutlineToggle.addEventListener('click', () => {
+                    isTextOutlineEnabled = !isTextOutlineEnabled;
+                    textOutlineToggle.classList.toggle('active', isTextOutlineEnabled);
+                    textOutlineControls.style.display = isTextOutlineEnabled ? 'block' : 'none';
+                });
+            }
+            
+            if (outlineWidth && outlineWidthValue) {
+                outlineWidth.addEventListener('input', (e) => {
+                    outlineWidthValue.textContent = e.target.value + 'px';
+                });
+            }
+            
+            if (addTextButton) {
+                addTextButton.addEventListener('click', addText);
+            }
+            
+            // Event listeners for shape controls
+            shapeOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    shapeOptions.forEach(opt => opt.classList.remove('active'));
+                    option.classList.add('active');
+                    selectedShapeType = option.dataset.shape;
+                });
+            });
+            
+            if (shapeSize && shapeSizeValue) {
+                shapeSize.addEventListener('input', (e) => {
+                    shapeSizeValue.textContent = e.target.value + 'px';
+                });
+            }
+            
+            if (shapeRotation && shapeRotationValue) {
+                shapeRotation.addEventListener('input', (e) => {
+                    shapeRotationValue.textContent = e.target.value + '°';
+                });
+            }
+            
+            if (shapeOpacity && shapeOpacityValue) {
+                shapeOpacity.addEventListener('input', (e) => {
+                    shapeOpacityValue.textContent = e.target.value + '%';
+                });
+            }
+            
+            if (addShapeButton) {
+                addShapeButton.addEventListener('click', addShape);
+            }
+            
+            // Event listeners for image controls
+            if (uploadImageButton && imageInput) {
+                uploadImageButton.addEventListener('click', () => {
+                    imageInput.click();
+                });
+                
+                imageInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        addImage(event.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            if (imageSize && imageSizeValue) {
+                imageSize.addEventListener('input', (e) => {
+                    imageSizeValue.textContent = e.target.value + 'px';
+                });
+            }
+            
+            if (imageRotation && imageRotationValue) {
+                imageRotation.addEventListener('input', (e) => {
+                    imageRotationValue.textContent = e.target.value + '°';
+                });
+            }
+            
+            if (imageOpacity && imageOpacityValue) {
+                imageOpacity.addEventListener('input', (e) => {
+                    imageOpacityValue.textContent = e.target.value + '%';
+                });
+            }
+            
+            if (imageBorderToggle && imageBorderControls) {
+                imageBorderToggle.addEventListener('click', () => {
+                    isImageBorderEnabled = !isImageBorderEnabled;
+                    imageBorderToggle.classList.toggle('active', isImageBorderEnabled);
+                    imageBorderControls.style.display = isImageBorderEnabled ? 'block' : 'none';
+                });
+            }
+            
+            if (borderWidth && borderWidthValue) {
+                borderWidth.addEventListener('input', (e) => {
+                    borderWidthValue.textContent = e.target.value + 'px';
+                });
+            }
+            
+            if (imageBorderRadius && imageBorderRadiusValue) {
+                imageBorderRadius.addEventListener('input', (e) => {
+                    imageBorderRadiusValue.textContent = e.target.value + 'px';
+                });
+            }
+            
+            if (imageShadowToggle) {
+                imageShadowToggle.addEventListener('click', () => {
+                    isImageShadowEnabled = !isImageShadowEnabled;
+                    imageShadowToggle.classList.toggle('active', isImageShadowEnabled);
+                });
+            }
+            
+            // Event listeners for filter controls
+            if (filterBrightness && filterBrightnessValue) {
+                filterBrightness.addEventListener('input', (e) => {
+                    filters.brightness = parseInt(e.target.value);
+                    filterBrightnessValue.textContent = filters.brightness + '%';
+                    drawCanvas();
+                });
+            }
+            
+            if (filterContrast && filterContrastValue) {
+                filterContrast.addEventListener('input', (e) => {
+                    filters.contrast = parseInt(e.target.value);
+                    filterContrastValue.textContent = filters.contrast + '%';
+                    drawCanvas();
+                });
+            }
+            
+            if (filterSaturation && filterSaturationValue) {
+                filterSaturation.addEventListener('input', (e) => {
+                    filters.saturation = parseInt(e.target.value);
+                    filterSaturationValue.textContent = filters.saturation + '%';
+                    drawCanvas();
+                });
+            }
+            
+            if (filterBlur && filterBlurValue) {
+                filterBlur.addEventListener('input', (e) => {
+                    filters.blur = parseInt(e.target.value);
+                    filterBlurValue.textContent = filters.blur + 'px';
+                    drawCanvas();
+                });
+            }
+            
+            if (filterHueRotate && filterHueRotateValue) {
+                filterHueRotate.addEventListener('input', (e) => {
+                    filters.hueRotate = parseInt(e.target.value);
+                    filterHueRotateValue.textContent = filters.hueRotate + '°';
+                    drawCanvas();
+                });
+            }
+            
+            if (filterSepia && filterSepiaValue) {
+                filterSepia.addEventListener('input', (e) => {
+                    filters.sepia = parseInt(e.target.value);
+                    filterSepiaValue.textContent = filters.sepia + '%';
+                    drawCanvas();
+                });
+            }
+            
+            if (filterGrayscale && filterGrayscaleValue) {
+                filterGrayscale.addEventListener('input', (e) => {
+                    filters.grayscale = parseInt(e.target.value);
+                    filterGrayscaleValue.textContent = filters.grayscale + '%';
+                    drawCanvas();
+                });
+            }
+            
+            if (filterInvert && filterInvertValue) {
+                filterInvert.addEventListener('input', (e) => {
+                    filters.invert = parseInt(e.target.value);
+                    filterInvertValue.textContent = filters.invert + '%';
+                    drawCanvas();
+                });
+            }
+            
+            if (resetFiltersButton) {
+                resetFiltersButton.addEventListener('click', () => {
+                    filters = {
+                        brightness: 100,
+                        contrast: 100,
+                        saturation: 100,
+                        blur: 0,
+                        hueRotate: 0,
+                        sepia: 0,
+                        grayscale: 0,
+                        invert: 0
+                    };
+                    updateFilterUI();
+                    drawCanvas();
+                });
+            }
+            
+            // Event listeners for element properties
+            if (elementX && elementXValue) {
+                elementX.addEventListener('input', (e) => {
+                    const element = elements.find(el => el.id === selectedElementId);
+                    if (element) {
+                        const position = snapToGridPosition(parseFloat(e.target.value), element.y);
+                        element.x = position.x;
+                        elementXValue.textContent = Math.round(position.x) + 'px';
+                        drawCanvas();
+                    }
+                });
+            }
+            
+            if (elementY && elementYValue) {
+                elementY.addEventListener('input', (e) => {
+                    const element = elements.find(el => el.id === selectedElementId);
+                    if (element) {
+                        const position = snapToGridPosition(element.x, parseFloat(e.target.value));
+                        element.y = position.y;
+                        elementYValue.textContent = Math.round(position.y) + 'px';
+                        drawCanvas();
+                    }
+                });
+            }
+            
+            if (elementOpacity && elementOpacityValue) {
+                elementOpacity.addEventListener('input', (e) => {
+                    const element = elements.find(el => el.id === selectedElementId);
+                    if (element) {
+                        element.opacity = parseFloat(e.target.value) / 100;
+                        elementOpacityValue.textContent = e.target.value + '%';
+                        drawCanvas();
+                    }
+                });
+            }
+            
+            if (elementRotation && elementRotationValue) {
+                elementRotation.addEventListener('input', (e) => {
+                    const element = elements.find(el => el.id === selectedElementId);
+                    if (element) {
+                        element.rotation = parseFloat(e.target.value);
+                        elementRotationValue.textContent = e.target.value + '°';
+                        drawCanvas();
+                    }
+                });
+            }
+            
+            if (elementScale && elementScaleValue) {
+                elementScale.addEventListener('input', (e) => {
+                    const element = elements.find(el => el.id === selectedElementId);
+                    if (element) {
+                        element.scale = parseFloat(e.target.value) / 100;
+                        elementScaleValue.textContent = e.target.value + '%';
+                        drawCanvas();
+                    }
+                });
+            }
+            
+            if (bringToFrontButton) {
+                bringToFrontButton.addEventListener('click', () => {
+                    if (selectedElementId) {
+                        bringElementToFront(selectedElementId);
+                    }
+                });
+            }
+            
+            if (sendToBackButton) {
+                sendToBackButton.addEventListener('click', () => {
+                    if (selectedElementId) {
+                        sendElementToBack(selectedElementId);
+                    }
+                });
+            }
+            
+            if (deleteElementButton) {
+                deleteElementButton.addEventListener('click', () => {
+                    if (selectedElementId) {
+                        deleteElement(selectedElementId);
+                    }
+                });
+            }
+            
+            // Event listeners for toolbar
+            if (zoomInButton) {
+                zoomInButton.addEventListener('click', () => {
+                    zoomLevel = Math.min(zoomLevel * 1.2, 3);
+                    if (canvas) canvas.style.transform = `scale(${zoomLevel})`;
+                    showToast(`Zoom: ${Math.round(zoomLevel * 100)}%`);
+                });
+            }
+            
+            if (zoomOutButton) {
+                zoomOutButton.addEventListener('click', () => {
+                    zoomLevel = Math.max(zoomLevel / 1.2, 0.33);
+                    if (canvas) canvas.style.transform = `scale(${zoomLevel})`;
+                    showToast(`Zoom: ${Math.round(zoomLevel * 100)}%`);
+                });
+            }
+            
+            if (fitButton) {
+                fitButton.addEventListener('click', () => {
+                    zoomLevel = 1;
+                    if (canvas) canvas.style.transform = `scale(${zoomLevel})`;
+                    showToast('Zoom: 100%');
+                });
+            }
+            
+            if (gridButton) {
+                gridButton.addEventListener('click', () => {
+                    showGrid = !showGrid;
+                    gridButton.classList.toggle('active', showGrid);
+                    drawCanvas();
+                });
+            }
+            
+            if (snapButton) {
+                snapButton.addEventListener('click', () => {
+                    snapToGrid = !snapToGrid;
+                    snapButton.classList.toggle('active', snapToGrid);
+                    showToast(snapToGrid ? 'Snap to grid enabled' : 'Snap to grid disabled');
+                });
+            }
+            
+            if (centerButton) {
+                centerButton.addEventListener('click', () => {
+                    if (selectedElementId) {
+                        centerElement(selectedElementId);
+                    }
+                });
+            }
+            
+            if (duplicateButton) {
+                duplicateButton.addEventListener('click', () => {
+                    if (selectedElementId) {
+                        duplicateElement(selectedElementId);
+                    }
+                });
+            }
+            
+            // Event listeners for header actions
+            if (exportButton) {
+                exportButton.addEventListener('click', () => {
+                    // Switch to export tab
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    const exportTab = document.querySelector('[data-tab="export"]');
+                    if (exportTab) exportTab.classList.add('active');
+                    
+                    const exportTabContent = document.getElementById('export-tab');
+                    if (exportTabContent) exportTabContent.classList.add('active');
+                });
+            }
+            
+            if (exportNowButton) {
+                exportNowButton.addEventListener('click', () => {
+                    exportCanvas(exportFormat, exportSize);
+                });
+            }
+            
+            if (undoButton) {
+                undoButton.addEventListener('click', undo);
+            }
+            
+            if (redoButton) {
+                redoButton.addEventListener('click', redo);
+            }
+            
+            if (resetButton) {
+                resetButton.addEventListener('click', resetCanvas);
+            }
+            
+            // Canvas mouse events for dragging
+            if (canvas) {
+                canvas.addEventListener('mousedown', (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = canvas.width / rect.width;
+                    const scaleY = canvas.height / rect.height;
+                    const x = (e.clientX - rect.left) * scaleX;
+                    const y = (e.clientY - rect.top) * scaleY;
+                    
+                    const element = getElementAtPosition(x, y);
+                    if (element) {
+                        selectedElementId = element.id;
+                        isDragging = true;
+                        dragStartX = x - element.x;
+                        dragStartY = y - element.y;
+                        updateElementList();
+                        drawCanvas();
+                    } else {
+                        selectedElementId = null;
+                        updateElementList();
+                        drawCanvas();
+                    }
+                });
+                
+                canvas.addEventListener('mousemove', (e) => {
+                    if (!isDragging || !selectedElementId) return;
+                    
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = canvas.width / rect.width;
+                    const scaleY = canvas.height / rect.height;
+                    const x = (e.clientX - rect.left) * scaleX;
+                    const y = (e.clientY - rect.top) * scaleY;
+                    
+                    const element = elements.find(el => el.id === selectedElementId);
+                    if (element) {
+                        element.x = x - dragStartX;
+                        element.y = y - dragStartY;
+                        
+                        if (snapToGrid) {
+                            const snapped = snapToGridPosition(element.x, element.y);
+                            element.x = snapped.x;
+                            element.y = snapped.y;
+                        }
+                        
+                        updateElementProperties();
+                        drawCanvas();
+                    }
+                });
+                
+                canvas.addEventListener('mouseup', () => {
+                    if (isDragging) {
+                        saveState();
+                    }
+                    isDragging = false;
+                });
+                
+                canvas.addEventListener('mouseleave', () => {
+                    isDragging = false;
+                });
+                
+                // Touch events for mobile
+                canvas.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = canvas.width / rect.width;
+                    const scaleY = canvas.height / rect.height;
+                    const touch = e.touches[0];
+                    const x = (touch.clientX - rect.left) * scaleX;
+                    const y = (touch.clientY - rect.top) * scaleY;
+                    
+                    const element = getElementAtPosition(x, y);
+                    if (element) {
+                        selectedElementId = element.id;
+                        isDragging = true;
+                        dragStartX = x - element.x;
+                        dragStartY = y - element.y;
+                        updateElementList();
+                        drawCanvas();
+                    } else {
+                        selectedElementId = null;
+                        updateElementList();
+                        drawCanvas();
+                    }
+                });
+                
+                canvas.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    if (!isDragging || !selectedElementId) return;
+                    
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = canvas.width / rect.width;
+                    const scaleY = canvas.height / rect.height;
+                    const touch = e.touches[0];
+                    const x = (touch.clientX - rect.left) * scaleX;
+                    const y = (touch.clientY - rect.top) * scaleY;
+                    
+                    const element = elements.find(el => el.id === selectedElementId);
+                    if (element) {
+                        element.x = x - dragStartX;
+                        element.y = y - dragStartY;
+                        
+                        if (snapToGrid) {
+                            const snapped = snapToGridPosition(element.x, element.y);
+                            element.x = snapped.x;
+                            element.y = snapped.y;
+                        }
+                        
+                        updateElementProperties();
+                        drawCanvas();
+                    }
+                });
+                
+                canvas.addEventListener('touchend', () => {
+                    if (isDragging) {
+                        saveState();
+                    }
+                    isDragging = false;
+                });
+            }
+            
+            // Initialize
+            try {
+                initCanvas();
+            } catch (error) {
+                console.error('Error initializing application:', error);
+                showToast('Error initializing application');
+            }
+        });
+    </script>
+</body>
+</html>
